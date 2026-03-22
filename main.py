@@ -74,7 +74,28 @@ async def llama_response(message:types.Message):
    print(f">>> LLama :\n\t {reference.response}")
    
 
+from aiohttp import web
+
+async def handle(request):
+    return web.Response(text="Bot is perfectly alive and running in the background!")
+
+async def fake_web_server():
+    app = web.Application()
+    app.router.add_get('/', handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    # Render assigns a dynamic port using the PORT environment variable
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"Fake Web Server listening on port {port} just to keep Render extremely happy!")
+
 async def main():
+    # Start the fake web server concurrently in the background
+    asyncio.create_task(fake_web_server())
+    
+    # Start the long-polling bot
     await dispatcher.start_polling(bot)
 
 if __name__ == '__main__':
